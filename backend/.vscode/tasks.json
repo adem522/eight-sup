@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "cwd": "${workspaceFolder}",
+    "tasks": [
+        {
+            "label": "install",
+            "command": "go",
+            "args": ["install", "-v", "./..."],
+            "group": "build",
+            "type": "shell",
+        },
+        {
+            "label": "run",
+            "command": "go",
+            "args": ["run", "${file}"],
+            "group": "build",
+            "type": "shell",
+        },
+        {
+            "label": "nodemon",
+            "command": "nodemon --exec go run main.go --signal SIGTERM",
+            "group": "build",
+            "type": "shell",
+        },
+        {
+            "label": "test",
+            "command": "go",
+            "args": ["test", "-v", "./..."],
+            "group": "test",
+            "type": "shell",
+        },
+    ],
+}

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/adem522/eight-sup/Models"
+	"github.com/adem522/eight-sup/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 //update plan when client take plan
-func UpdatePlan(u *Models.UserStructAddPlan, collection *mongo.Collection) error {
+func UpdatePlan(u *models.UserStructAddPlan, collection *mongo.Collection) error {
 	_, err := collection.UpdateOne(
 		context.TODO(),
 		bson.M{"username": u.Username, "plan.package.unique": u.Unique},

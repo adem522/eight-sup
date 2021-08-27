@@ -32,18 +32,18 @@ func main() {
 	e.Use(utils.CORSConfig(), utils.Logger()) //issues#6
 
 	user := e.Group("/user")
-	user.POST("/register", userCol.Register) //send Models.UserStruct
+	user.POST("/register", userCol.Register) //send models.UserStruct
 	user.POST("/login", userCol.Login)       //send username and password
 
 	create := e.Group("/create")
-	create.POST("/event", eventCol.CreateEvent)      //send Models.Event
-	create.POST("/planInfo", planCol.CreatePlanInfo) //send Models.PlanInfoStruct
+	create.POST("/event", eventCol.CreateEvent)      //send models.Event
+	create.POST("/planInfo", planCol.CreatePlanInfo) //send models.PlanInfoStruct
 	create.GET("/allPlan", planCol.CreateAllPlan)    //just get
-	create.POST("/want", wantCol.CreateWant)         //send Models.Want
+	create.POST("/want", wantCol.CreateWant)         //send models.Want
 
 	plan := e.Group("/plan")
-	plan.POST("/push", userCol.PushPlan)      //Models.UserStructAddPlan
-	plan.PATCH("/update", userCol.UpdatePlan) //Models.UserStructAddPlan
+	plan.POST("/push", userCol.PushPlan)      //models.UserStructAddPlan
+	plan.PATCH("/update", userCol.UpdatePlan) //models.UserStructAddPlan
 
 	list := e.Group("/list")
 	list.GET("/user", userCol.ReturnAllUsername)        //just get

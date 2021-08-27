@@ -3,14 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/adem522/eight-sup/Models"
 	"github.com/adem522/eight-sup/database"
+	"github.com/adem522/eight-sup/models"
 	"github.com/adem522/eight-sup/utils"
 	"github.com/labstack/echo"
 )
 
 func (col *Collection) CreateEvent(c echo.Context) error {
-	u := Models.Event{}
+	u := models.Event{}
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func (col *Collection) CreateEvent(c echo.Context) error {
 }
 
 func (col *Collection) CreateWant(c echo.Context) error {
-	u := Models.Want{}
+	u := models.Want{}
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
@@ -39,7 +39,7 @@ func (col *Collection) CreateWant(c echo.Context) error {
 }
 
 func (col *Collection) CreatePlanInfo(c echo.Context) error {
-	u := Models.PlanInfoStruct{}
+	u := models.PlanInfoStruct{}
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (col *Collection) CreateAllPlan(c echo.Context) error {
 }
 
 func (col *Collection) PushPlan(c echo.Context) error {
-	u := Models.UserStructAddPlan{}
+	u := models.UserStructAddPlan{}
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
@@ -72,8 +72,8 @@ func (col *Collection) PushPlan(c echo.Context) error {
 
 func (col *Collection) Register(c echo.Context) error {
 	// Binding context data
-	u := Models.UserStruct{}
-	u.Plan = []Models.PlanStruct{}
+	u := models.UserStruct{}
+	u.Plan = []models.PlanStruct{}
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (col *Collection) Register(c echo.Context) error {
 
 func (col *Collection) Login(c echo.Context) error {
 	// Binding context data
-	user := Models.UserStruct{}
+	user := models.UserStruct{}
 	if err := c.Bind(&user); err != nil {
 		return err
 	}

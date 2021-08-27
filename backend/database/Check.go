@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/adem522/eight-sup/Models"
+	"github.com/adem522/eight-sup/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func checkClient(collection *mongo.Collection, event *Models.Event) error {
-	var filter2 Models.PlanStruct
-	var filter Models.UserStruct
+func checkClient(collection *mongo.Collection, event *models.Event) error {
+	var filter2 models.PlanStruct
+	var filter models.UserStruct
 	opt := options.FindOne().SetProjection(bson.M{"plan": 1})
 	collection.FindOne(
 		context.TODO(),
@@ -31,9 +31,9 @@ func checkClient(collection *mongo.Collection, event *Models.Event) error {
 	return nil
 }
 
-func checkStreamer(collection *mongo.Collection, event *Models.Event) error {
-	var filter2 Models.PlanStruct
-	var filter Models.UserStruct
+func checkStreamer(collection *mongo.Collection, event *models.Event) error {
+	var filter2 models.PlanStruct
+	var filter models.UserStruct
 	collection.FindOne(
 		context.TODO(),
 		bson.M{
@@ -51,7 +51,7 @@ func checkStreamer(collection *mongo.Collection, event *Models.Event) error {
 	return fmt.Errorf("error from updating seller stock and error code -seller don't have stock")
 }
 
-func pushStreamer(collectionUser *mongo.Collection, event *Models.Event) error {
+func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
 	_, err := collectionUser.UpdateOne(
 		context.TODO(),
 		bson.M{
@@ -70,9 +70,9 @@ func pushStreamer(collectionUser *mongo.Collection, event *Models.Event) error {
 	return nil
 }
 
-func pushClient(collection *mongo.Collection, event *Models.Event) error {
-	plan := Models.PlanStruct{
-		Package: Models.PackageStruct{
+func pushClient(collection *mongo.Collection, event *models.Event) error {
+	plan := models.PlanStruct{
+		Package: models.PackageStruct{
 			Date:   time.Now().Add(time.Hour * 3),
 			Unique: event.Unique,
 			Stock:  1,
@@ -111,8 +111,8 @@ func LoginCheck(data1, data2 string, collection *mongo.Collection) string {
 	return result["type"].(string)
 }
 
-func checkPlan(u *Models.UserStructAddPlan, collection *mongo.Collection) bool {
-	var filter Models.UserStruct
+func checkPlan(u *models.UserStructAddPlan, collection *mongo.Collection) bool {
+	var filter models.UserStruct
 	opt := options.FindOne().SetProjection(bson.M{"plan": 1})
 	collection.FindOne(
 		context.TODO(),
@@ -124,7 +124,7 @@ func checkPlan(u *Models.UserStructAddPlan, collection *mongo.Collection) bool {
 	return filter.Plan != nil
 }
 
-func pushPlanIfExist(u *Models.UserStructAddPlan, collection *mongo.Collection) bool {
+func pushPlanIfExist(u *models.UserStructAddPlan, collection *mongo.Collection) bool {
 	doc := collection.FindOneAndUpdate(
 		context.TODO(),
 		bson.M{

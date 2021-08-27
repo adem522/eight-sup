@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/adem522/eight-sup/Models"
+	"github.com/adem522/eight-sup/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func CreateEvent(data *Models.Event, event *mongo.Collection, user *mongo.Collection) error {
+func CreateEvent(data *models.Event, event *mongo.Collection, user *mongo.Collection) error {
 	data.Date = time.Now().Add(3 * time.Hour)
 	if err := checkClient(user, data); err != nil {
 		return fmt.Errorf("error from check client - %w", err)
@@ -34,7 +34,7 @@ func CreateEvent(data *Models.Event, event *mongo.Collection, user *mongo.Collec
 	return nil
 }
 
-func CreatePlanInfo(data *Models.PlanInfoStruct, planInfo *mongo.Collection) (interface{}, error) {
+func CreatePlanInfo(data *models.PlanInfoStruct, planInfo *mongo.Collection) (interface{}, error) {
 	result, err := planInfo.InsertOne(
 		context.TODO(), data,
 	)
@@ -45,9 +45,9 @@ func CreatePlanInfo(data *Models.PlanInfoStruct, planInfo *mongo.Collection) (in
 }
 
 //add plan when streamer take plan
-func PushPlan(u *Models.UserStructAddPlan, collection *mongo.Collection) error {
-	deneme := Models.PlanStruct{
-		Package: Models.PackageStruct{
+func PushPlan(u *models.UserStructAddPlan, collection *mongo.Collection) error {
+	deneme := models.PlanStruct{
+		Package: models.PackageStruct{
 			Stock:  u.Number,
 			Date:   time.Now().Add(3 * time.Hour),
 			Unique: u.Unique,
@@ -75,7 +75,7 @@ func PushPlan(u *Models.UserStructAddPlan, collection *mongo.Collection) error {
 	return nil
 }
 
-func RegisterUser(data1 *Models.UserStruct, collection *mongo.Collection) error {
+func RegisterUser(data1 *models.UserStruct, collection *mongo.Collection) error {
 	var result bson.M
 	err := collection.FindOne(context.TODO(), bson.M{"username": data1.Username}).Decode(&result)
 	if result != nil {
@@ -99,7 +99,7 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 		"Play together",
 	}
 	data := []interface{}{
-		Models.PlanInfoStruct{
+		models.PlanInfoStruct{
 			Unique: "bronze",
 			Name:   "Bronze Package",
 			Desc:   "Bronze Desc",
@@ -107,7 +107,7 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 			Cost:   2.99,
 			Items:  items[:1],
 		},
-		Models.PlanInfoStruct{
+		models.PlanInfoStruct{
 			Unique: "silver",
 			Name:   "Silver Package",
 			Desc:   "Silver Desc",
@@ -115,7 +115,7 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 			Cost:   3.99,
 			Items:  items[:2],
 		},
-		Models.PlanInfoStruct{
+		models.PlanInfoStruct{
 			Unique: "gold",
 			Name:   "Gold Package",
 			Desc:   "Gold Desc",
@@ -123,7 +123,7 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 			Cost:   4.99,
 			Items:  items[:3],
 		},
-		Models.PlanInfoStruct{
+		models.PlanInfoStruct{
 			Unique: "emerald",
 			Name:   "Emerald Package",
 			Desc:   "Emerald Desc",
@@ -131,7 +131,7 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 			Cost:   5.99,
 			Items:  items[:4],
 		},
-		Models.PlanInfoStruct{
+		models.PlanInfoStruct{
 			Unique: "vibranium",
 			Name:   "Vibranium Package",
 			Desc:   "Vibranium Desc",
@@ -139,7 +139,7 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 			Cost:   6.99,
 			Items:  items[:5],
 		},
-		Models.PlanInfoStruct{
+		models.PlanInfoStruct{
 			Unique: "diamond",
 			Name:   "Diamond Package",
 			Desc:   "Diamond Desc",
@@ -151,7 +151,7 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 	return collection.InsertMany(context.TODO(), data)
 }
 
-func CreateWant(want *Models.Want, col1, col2 *mongo.Collection) (interface{}, error) {
+func CreateWant(want *models.Want, col1, col2 *mongo.Collection) (interface{}, error) {
 	/*if err := deleteProp(want, col2); err != nil {
 		return nil, fmt.Errorf("error from deleteProp and err %w", err)
 	}*/
@@ -162,7 +162,7 @@ func CreateWant(want *Models.Want, col1, col2 *mongo.Collection) (interface{}, e
 	return col1.InsertOne(context.TODO(), want)
 }
 
-func deleteProp(want *Models.Want, col *mongo.Collection) error {
+func deleteProp(want *models.Want, col *mongo.Collection) error {
 	return col.FindOneAndUpdate(
 		context.TODO(),
 		bson.M{
@@ -182,7 +182,7 @@ func deleteProp(want *Models.Want, col *mongo.Collection) error {
 	).Err()
 }
 
-func deletePackage(want *Models.Want, col *mongo.Collection) error {
+func deletePackage(want *models.Want, col *mongo.Collection) error {
 	return col.FindOneAndUpdate(
 		context.TODO(),
 		bson.M{

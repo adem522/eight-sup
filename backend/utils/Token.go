@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/adem522/eight-sup/Models"
+	"github.com/adem522/eight-sup/models"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
 
-func CreateToken(user Models.UserStruct) string {
+func CreateToken(user models.UserStruct) string {
 	// Create token
 	token := jwt.New(jwt.SigningMethodHS256)
 	// Set claims

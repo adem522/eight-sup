@@ -1,4 +1,4 @@
-package Models
+package models
 
 type PlanInfoStruct struct {
 	Unique string   `bson:"unique,omitempty default:defaultUnique"`

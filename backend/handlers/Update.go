@@ -4,13 +4,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/adem522/eight-sup/Models"
 	"github.com/adem522/eight-sup/database"
+	"github.com/adem522/eight-sup/models"
 	"github.com/labstack/echo"
 )
 
 func (col *Collection) UpdatePlan(c echo.Context) error {
-	u := Models.UserStructAddPlan{}
+	u := models.UserStructAddPlan{}
 	if err := c.Bind(&u); err != nil {
 		return err
 	}

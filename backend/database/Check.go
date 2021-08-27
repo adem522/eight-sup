@@ -11,11 +11,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func checkClient(collection *mongo.Collection, event *models.Event) error {
+func checkClient(collectionUser *mongo.Collection, event *models.Event) error {
 	var filter2 models.PlanStruct
 	var filter models.UserStruct
 	opt := options.FindOne().SetProjection(bson.M{"plan": 1})
-	collection.FindOne(
+	collectionUser.FindOne(
 		context.TODO(),
 		bson.M{
 			"username": event.BuyerUsername,
@@ -31,15 +31,16 @@ func checkClient(collection *mongo.Collection, event *models.Event) error {
 	return nil
 }
 
-func checkStreamer(collection *mongo.Collection, event *models.Event) error {
+func checkStreamer(collectionUser *mongo.Collection, event *models.Event) error {
 	var filter2 models.PlanStruct
 	var filter models.UserStruct
-	collection.FindOne(
+	collectionUser.FindOne(
 		context.TODO(),
 		bson.M{
 			"username": event.SellerUsername,
 			"type":     "streamer",
 		},
+		options.FindOne().SetProjection(bson.M{"plan.package.items": 0}),
 	).Decode(&filter)
 	if filter.Plan != nil {
 		for _, filter2 = range filter.Plan {

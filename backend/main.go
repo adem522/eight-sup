@@ -51,6 +51,7 @@ func main() {
 	list.GET("/planUnique", planCol.ReturnPlanUnique)   //just get
 	list.PUT("/userStock", userCol.ReturnUserPlanStock) //username
 	list.PUT("/event", eventCol.ReturnUserEvent)        //username and boolean type (streamer=true)
+	list.PUT("/userWants", userCol.ReturnUserWants)     //buyer and seller username
 
 	e.Logger.Fatal(e.Start(":8080")) //issues#6
 }

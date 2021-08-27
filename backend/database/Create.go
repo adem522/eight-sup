@@ -152,12 +152,15 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 }
 
 func CreateWant(want *models.Want, col1, col2 *mongo.Collection) (interface{}, error) {
-	/*if err := deleteProp(want, col2); err != nil {
+	if err := deleteProp(want, col2); err != nil {
 		return nil, fmt.Errorf("error from deleteProp and err %w", err)
-	}*/
-	err := deletePackage(want, col2)
-	if err != nil {
-		fmt.Println("deletePackage error ", err)
+	}
+	if err := deletePackage(want, col2); err != nil {
+		return nil, fmt.Errorf("error from deletePackage and err %w", err)
+	}
+	if err := insertProp(want, col2); err != nil {
+		fmt.Println(err)
+		return nil, fmt.Errorf("error from insertProp and err %w", err)
 	}
 	return col1.InsertOne(context.TODO(), want)
 }
@@ -190,13 +193,34 @@ func deletePackage(want *models.Want, col *mongo.Collection) error {
 		},
 		bson.D{
 			{Key: "$pull", Value: bson.D{
-				{Key: "plan.$[elem]", Value: want.Unique},
+				{Key: "plan", Value: bson.M{
+					"package.unique":  want.Unique,
+					"sellerusername":  want.SellerUsername,
+					"package.items.0": bson.M{"$exists": false},
+				}},
+			}},
+		},
+	).Err()
+}
+
+func insertProp(want *models.Want, col *mongo.Collection) error {
+	return col.FindOneAndUpdate(
+		context.TODO(),
+		bson.M{
+			"username": want.SellerUsername,
+		},
+		bson.D{
+			{Key: "$push", Value: bson.D{
+				{Key: "plan.$[elem].package.items", Value: bson.D{
+					{Key: "prop", Value: want.Prop},
+					{Key: "buyerUsername", Value: want.BuyerUsername},
+					{Key: "status", Value: "requested"},
+				}},
 			}},
 		},
 		options.FindOneAndUpdate().SetArrayFilters(options.ArrayFilters{
 			Filters: []interface{}{bson.D{
 				{Key: "elem.package.unique", Value: want.Unique},
-				{Key: "elem.sellerusername", Value: want.SellerUsername},
 			}},
 		}),
 	).Err()

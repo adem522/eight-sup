@@ -22,11 +22,21 @@ func ReturnAll(collection *mongo.Collection, projection string, filter bson.M) (
 		filterCursor, err = collection.Find(context.TODO(), bson.M{}, findOpt)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("error from database/Database.go %g", err)
+		return nil, fmt.Errorf("error from ReturnAll/find and error code= %g", err)
 	}
 	var filtered []bson.M
 	if err = filterCursor.All(context.TODO(), &filtered); err != nil {
-		return nil, fmt.Errorf("error from database/Database.go %g", err)
+		return nil, fmt.Errorf("error from ReturnAll/filterCursor.All and error code= %g", err)
+	}
+	return filtered, nil
+}
+
+func ReturnAllArray(collection *mongo.Collection) (interface{}, error) {
+	opt := options.Find().SetProjection(bson.M{"plan.package.items": 1})
+	filterCursor, err := collection.Find(context.TODO(), bson.M{}, opt)
+	var filtered []bson.M
+	if err = filterCursor.All(context.TODO(), &filtered); err != nil {
+		return nil, fmt.Errorf("error from ReturnAll/filterCursor.All and error code= %g", err)
 	}
 	return filtered, nil
 }

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/adem522/eight-sup/database"
@@ -20,21 +21,6 @@ func (col *Collection) CreateEvent(c echo.Context) error {
 	}
 	return c.JSON(http.StatusCreated, []string{
 		"Event created Succesfull",
-	})
-}
-
-func (col *Collection) CreateWant(c echo.Context) error {
-	u := models.Want{}
-	if err := c.Bind(&u); err != nil {
-		return err
-	}
-	data, err := database.CreateWant(&u, col.C1, col.C2)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
-	return c.JSON(http.StatusCreated, []interface{}{
-		"Want created Succesfull",
-		data,
 	})
 }
 
@@ -105,5 +91,20 @@ func (col *Collection) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{
 		"token": token,
 		"type":  check,
+	})
+}
+
+func (col *Collection) CreateWant(c echo.Context) error {
+	u := models.Want{}
+	if err := c.Bind(&u); err != nil {
+		return err
+	}
+	data, err := database.CreateWant(&u, col.C1, col.C2)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, fmt.Errorf("error from CreateWant and error = %w", err))
+	}
+	return c.JSON(http.StatusCreated, []interface{}{
+		"Want created Succesfull",
+		data,
 	})
 }

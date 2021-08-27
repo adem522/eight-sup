@@ -55,13 +55,12 @@ func (col *Collection) ReturnUserEvent(c echo.Context) error {
 		SellerUsername string `bson:"sellerUsername,omitempty"`
 		Type           string `bson:"type,omitempty"`
 	}{}
-	filter := bson.M{}
-	err := c.Bind(&temp)
-	if err != nil {
+	if err := c.Bind(&temp); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),
 		})
 	}
+	filter := bson.M{}
 	if temp.Type != "" {
 		if temp.Type == "streamer" {
 			filter = bson.M{
@@ -89,6 +88,32 @@ func (col *Collection) ReturnUserEvent(c echo.Context) error {
 
 func (col *Collection) ReturnPlanUnique(c echo.Context) error {
 	data, err := database.ReturnAll(col.C1, "unique", nil)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"Can't return user because of ": err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, data)
+}
+
+func (col *Collection) ReturnUserWants(c echo.Context) error {
+	var temp struct {
+		BuyerUsername  string `bson:"buyerUsername"`
+		SellerUsername string `bson:"sellerUsername"`
+	}
+	if err := c.Bind(&temp); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"Can't return user because of ": err.Error(),
+		})
+	}
+	data, err := database.ReturnAll(
+		col.C1, "plan.package.items", //projection
+		bson.M{
+			"type":                             "streamer",
+			"username":                         temp.SellerUsername,
+			"plan.package.items.buyerUsername": temp.BuyerUsername,
+		}, //filter
+	)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),

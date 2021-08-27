@@ -19,7 +19,7 @@ func CreateToken(user models.UserStruct) string {
 	claims["admin"] = false
 	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
 	// Generate encoded token and send it as response.
-	t, err := token.SignedString([]byte(Getenv("secret")))
+	t, err := token.SignedString([]byte(Getenv("secret"))) //declare your secret in .env
 	if err != nil {
 		return err.Error()
 	}

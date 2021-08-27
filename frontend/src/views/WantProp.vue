@@ -101,17 +101,18 @@ export default {
         sellerUsername:this.selectedSeller.sellerusername,
         output:"json"
       })
-      console.log("unique = ",uniqueCame,"\nprop = ",propCame)
-      console.log("sellerUsername = ",this.selectedSeller.sellerusername,"\nbuyerUsername = ",this.username)
     },
     takeSellerUsername() {
-      this.sellerusername=[]
-      this.unique=[]
+      this.sellerusername=[]//for delete datas in combobox
+      this.unique=[]        //for delete datas in combobox
       for(let prop in this.storedPlan){
           if (this.selectedSeller.sellerusername == this.storedPlan[prop].sellerusername){
             this.sellerusername.push(this.storedPlan[prop].package)
         }
       }
+      console.log("sellerusername\n",this.sellerusername)
+      console.log("selectedSeller\n",this.selectedSeller)
+      console.log("storedPlan",this.storedPlan)
     },
     takeUnique() {
       this.unique=[]
@@ -154,6 +155,21 @@ export default {
             this.$store.commit("setStoredInfo", response.data.data);
         });
       }
+    },
+    getWants() {
+      axios
+        .put(this.host + "/list/userStock", {
+          username: this.username,
+        }
+      )
+        .then((response) => {
+          this.storedPlan=response.data[0].plan;
+            /*
+            localStorage.setItem("storedPlan",response.data[0].plan);
+            this.$store.commit("setStoredPlan", response.data[0].plan);
+            */
+        }
+      );
     },
   },
   created() {

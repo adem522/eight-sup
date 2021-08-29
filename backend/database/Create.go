@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/adem522/eight-sup/models"
@@ -14,22 +14,22 @@ import (
 func CreateEvent(data *models.Event, event *mongo.Collection, user *mongo.Collection) error {
 	data.Date = time.Now().Add(3 * time.Hour)
 	if err := checkClient(user, data); err != nil {
-		return fmt.Errorf("error from check client - %w", err)
+		return errors.New("error from check client - " + err.Error())
 	}
 	if err := checkStreamer(user, data); err != nil {
-		return fmt.Errorf("error from check streamer - %w", err)
+		return errors.New("error from check streamer - " + err.Error())
 	}
 	if err := pushClient(user, data); err != nil {
-		return fmt.Errorf("error from push client - %w", err)
+		return errors.New("error from push client - " + err.Error())
 	}
 	if err := pushStreamer(user, data); err != nil {
-		return fmt.Errorf("error from push streamer - %w", err)
+		return errors.New("error from push streamer - " + err.Error())
 	}
 	_, err := event.InsertOne(
 		context.TODO(), data,
 	)
 	if err != nil {
-		return fmt.Errorf("error from create event - %w", err)
+		return errors.New("error from create event - " + err.Error())
 	}
 	return nil
 }
@@ -39,7 +39,7 @@ func CreatePlanInfo(data *models.PlanInfoStruct, planInfo *mongo.Collection) (in
 		context.TODO(), data,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("error from create event and error code - %w", err)
+		return nil, errors.New("error from create event and error code - " + err.Error())
 	}
 	return result.InsertedID, nil
 }
@@ -58,7 +58,7 @@ func PushPlan(u *models.UserStructAddPlan, collection *mongo.Collection) error {
 		if pushPlanIfExist(u, collection) {
 			return nil
 		}
-		return fmt.Errorf("error from increasing plan streamer and error code ")
+		return errors.New("error from increasing plan streamer and error code ")
 	}
 	_, err := collection.UpdateOne(
 		context.TODO(),
@@ -70,7 +70,7 @@ func PushPlan(u *models.UserStructAddPlan, collection *mongo.Collection) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("error from adding plan streamer and error code = %g", err)
+		return errors.New("error from adding plan streamer and error code = " + err.Error())
 	}
 	return nil
 }
@@ -79,11 +79,11 @@ func RegisterUser(data1 *models.UserStruct, collection *mongo.Collection) error 
 	var result bson.M
 	err := collection.FindOne(context.TODO(), bson.M{"username": data1.Username}).Decode(&result)
 	if result != nil {
-		return fmt.Errorf("already registered user %g", err)
+		return errors.New("already registered user " + err.Error())
 	}
 	_, err = collection.InsertOne(context.TODO(), data1)
 	if err != nil {
-		return fmt.Errorf("error from handlers/register %g", err)
+		return errors.New("error from handlers/register " + err.Error())
 	}
 	return nil
 }
@@ -153,14 +153,13 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 
 func CreateWant(want *models.Want, col1, col2 *mongo.Collection) (interface{}, error) {
 	if err := deleteProp(want, col2); err != nil {
-		return nil, fmt.Errorf("error from deleteProp and err %w", err)
+		return nil, errors.New("error from deleteProp and err " + err.Error())
 	}
 	if err := deletePackage(want, col2); err != nil {
-		return nil, fmt.Errorf("error from deletePackage and err %w", err)
+		return nil, errors.New("error from deletePackage and err " + err.Error())
 	}
 	if err := insertProp(want, col2); err != nil {
-		fmt.Println(err)
-		return nil, fmt.Errorf("error from insertProp and err %w", err)
+		return nil, errors.New("error from insertProp and err " + err.Error())
 	}
 	return col1.InsertOne(context.TODO(), want)
 }

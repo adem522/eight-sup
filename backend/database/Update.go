@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/adem522/eight-sup/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -21,7 +21,7 @@ func UpdatePlan(u *models.UserStructAddPlan, collection *mongo.Collection) error
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("error from adding plan streamer and error code = %g", err)
+		return errors.New("error from adding plan streamer and error code = " + err.Error())
 	}
 	return nil
 }

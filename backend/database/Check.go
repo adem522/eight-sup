@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/adem522/eight-sup/models"
@@ -24,7 +24,7 @@ func checkClient(collectionUser *mongo.Collection, event *models.Event) error {
 	if filter.Plan != nil {
 		for _, filter2 = range filter.Plan {
 			if filter2.Package.Unique == event.Unique && filter2.SellerUsername == event.SellerUsername {
-				return fmt.Errorf("error from updating buyer stock and error code - already have")
+				return errors.New("error from updating buyer stock and error code - already have")
 			}
 		}
 	}
@@ -49,7 +49,7 @@ func checkStreamer(collectionUser *mongo.Collection, event *models.Event) error 
 			}
 		}
 	}
-	return fmt.Errorf("error from updating seller stock and error code -seller don't have stock")
+	return errors.New("error from updating seller stock and error code -seller don't have stock")
 }
 
 func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
@@ -66,7 +66,7 @@ func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("error from updating seller stock and error code - %g", err)
+		return errors.New("error from updating seller stock and error code - " + err.Error())
 	}
 	return nil
 }
@@ -93,7 +93,7 @@ func pushClient(collection *mongo.Collection, event *models.Event) error {
 		},
 	)
 	if err != nil {
-		return fmt.Errorf("error from updating buyer stock and error code - %g", err)
+		return errors.New("error from updating buyer stock and error code - " + err.Error())
 	}
 	return nil
 }

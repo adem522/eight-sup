@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/adem522/eight-sup/database"
@@ -101,7 +101,7 @@ func (col *Collection) CreateWant(c echo.Context) error {
 	}
 	data, err := database.CreateWant(&u, col.C1, col.C2)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, fmt.Errorf("error from CreateWant and error = %w", err))
+		return c.JSON(http.StatusBadRequest, errors.New("error from CreateWant and error = "+err.Error()))
 	}
 	return c.JSON(http.StatusCreated, []interface{}{
 		"Want created Succesfull",

@@ -33,7 +33,8 @@
           <v-list-item three-line>
               <v-list-item-content>
                   <v-list-item-title>{{returnInfo(item.unique).name}}</v-list-item-title>
-                  <v-list-item-subtitle>Date {{item.date}}</v-list-item-subtitle>              </v-list-item-content>
+                  <v-list-item-subtitle>Date {{item.date}}</v-list-item-subtitle>              
+              </v-list-item-content>
           </v-list-item>
         </v-card>
       </v-col>
@@ -75,12 +76,11 @@ export default {
     },
     getStocks() {
       axios
-        .put(this.host + "/list/userStock", {
+        .put(this.host + "/list/userPlan", {
           username: this.username,
         }
       )
         .then((response) => {
-            localStorage.setItem("storedPlan",response.data[0].plan);
             this.sellerUsername=response.data[0];
             this.$store.commit("setStoredPlan", response.data[0].plan);
         }
@@ -91,7 +91,6 @@ export default {
         axios
           .get(this.host + "/list/planInfo")
           .then((response) => {
-            localStorage.setItem("storedInfo", response.data.data);
             this.$store.commit("setStoredInfo", response.data.data);
         });
       }

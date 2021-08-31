@@ -50,7 +50,6 @@ import { mapState } from "vuex";
       ...mapState(["host","storedInfo"])
     },
     data: () => ({
-      stored:[],
       items: [
         {
           //bronze
@@ -83,9 +82,8 @@ import { mapState } from "vuex";
         axios
         .get(this.host + "/list/planInfo")
         .then((response) => {
-          this.stored=response.data.data
-            localStorage.setItem("storedInfo", response.data.data);
-            this.$store.commit("setStoredInfo", response.data.data);
+          this.storedInfo=response.data.data
+          this.$store.commit("setStoredInfo", response.data.data);
           for(let prop in this.storedInfo){
             this.storedInfo[prop].img=this.items[prop].img
           }
@@ -93,7 +91,9 @@ import { mapState } from "vuex";
       },
     },
     created() {
-      this.getInfo();
+      if(this.storedInfo.length==0){
+        this.getInfo();
+      }
     },
   }
 </script>

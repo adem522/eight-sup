@@ -8,4 +8,5 @@ type Want struct {
 	BuyerUsername  string             `bson:"buyerUsername"`
 	Unique         string             `bson:"unique"`
 	Prop           string             `bson:"prop"`
+	Status         string             `bson:"status"`
 }

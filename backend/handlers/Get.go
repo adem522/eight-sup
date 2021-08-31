@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/adem522/eight-sup/database"
+	"github.com/adem522/eight-sup/models"
 	"github.com/labstack/echo"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -29,7 +30,7 @@ func (col *Collection) ReturnAllUsername(c echo.Context) error {
 	return c.JSON(http.StatusOK, data)
 }
 
-func (col *Collection) ReturnUserPlanStock(c echo.Context) error {
+func (col *Collection) ReturnUserPlan(c echo.Context) error {
 	temp := struct {
 		Username string `bson:"username"`
 	}{}
@@ -114,6 +115,37 @@ func (col *Collection) ReturnUserWants(c echo.Context) error {
 			"plan.package.items.buyerUsername": temp.BuyerUsername,
 		}, //filter
 	)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"Can't return user because of ": err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, data)
+}
+
+func (col *Collection) ReturnAllItemsForClient(c echo.Context) error {
+	var temp models.Want
+	if err := c.Bind(&temp); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"Can't return user because of ": err.Error(),
+		})
+	}
+	data, err := database.ReturnAllItemsForClient(col.C1, &temp)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"Can't return user because of ": err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, data)
+}
+func (col *Collection) ReturnAllItemsForStreamer(c echo.Context) error {
+	var temp models.Want
+	if err := c.Bind(&temp); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"Can't return user because of ": err.Error(),
+		})
+	}
+	data, err := database.ReturnAllItemsForStreamer(col.C1, &temp)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),

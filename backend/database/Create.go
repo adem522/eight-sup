@@ -151,58 +151,73 @@ func CreateAllPlan(collection *mongo.Collection) (interface{}, error) {
 	return collection.InsertMany(context.TODO(), data)
 }
 
-func CreateWant(want *models.Want, col1, col2 *mongo.Collection) (interface{}, error) {
-	if err := deleteProp(want, col2); err != nil {
-		return nil, errors.New("error from deleteProp and err " + err.Error())
-	}
-	if err := deletePackage(want, col2); err != nil {
-		return nil, errors.New("error from deletePackage and err " + err.Error())
-	}
-	if err := insertProp(want, col2); err != nil {
-		return nil, errors.New("error from insertProp and err " + err.Error())
-	}
-	return col1.InsertOne(context.TODO(), want)
+func DropIfExist(collection *mongo.Collection) error {
+	return collection.Drop(context.TODO())
 }
 
-func deleteProp(want *models.Want, col *mongo.Collection) error {
-	return col.FindOneAndUpdate(
+//Client
+func ControllerWantClient(want *models.Want, col1, col2 *mongo.Collection) error {
+	if want.Status == "want" {
+		want.Status = "requested"
+		if err := updatePropClient(want, col2); err != nil { //available to requested
+			return errors.New("error from updatePropClient and err " + err.Error())
+		}
+		if err := insertStreamerProp(want, col2); err != nil { //client hangi probu aldıysa
+			return errors.New("error from insertStreamerProp and err " + err.Error())
+		}
+	} else if want.Status == "getBack" {
+		want.Status = "available"
+		if err := getBackPropClient(want, col2); err != nil { //
+			return errors.New("error from getBackPropClient and err " + err.Error())
+		}
+		if err := getBackPropStreamer(want, col2); err != nil { //
+			return errors.New("error from getBackPropStreamer and err " + err.Error())
+		}
+	} else if want.Status == "delete" {
+		if err := deletePropClient(want, col2); err != nil { //
+			return errors.New("error from deletePropClient and err " + err.Error())
+		}
+		if err := deletePropStreamer(want, col2); err != nil { //
+			return errors.New("error from deletePropStreamer and err " + err.Error())
+		}
+	}
+	return nil
+}
+
+func updatePropClient(want *models.Want, col *mongo.Collection) error {
+	result, err := col.UpdateOne(
 		context.TODO(),
 		bson.M{
 			"username": want.BuyerUsername,
 		},
 		bson.D{
-			{Key: "$pull", Value: bson.D{
-				{Key: "plan.$[elem].package.items", Value: want.Prop},
+			{Key: "$set", Value: bson.D{
+				{Key: "plan.$[elem].package.items.$[elem2].status", Value: want.Status},
 			}},
 		},
-		options.FindOneAndUpdate().SetArrayFilters(options.ArrayFilters{
-			Filters: []interface{}{bson.D{
-				{Key: "elem.package.unique", Value: want.Unique},
-				{Key: "elem.sellerusername", Value: want.SellerUsername},
-			}},
+		options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.D{
+					{Key: "elem.package.unique", Value: want.Unique},
+					{Key: "elem.sellerusername", Value: want.SellerUsername},
+				},
+				bson.D{
+					{Key: "elem2.prop", Value: want.Prop},
+					{Key: "elem2.status", Value: "available"},
+				},
+			},
 		}),
-	).Err()
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("this prop requested")
+	}
+	return nil
 }
 
-func deletePackage(want *models.Want, col *mongo.Collection) error {
-	return col.FindOneAndUpdate(
-		context.TODO(),
-		bson.M{
-			"username": want.BuyerUsername,
-		},
-		bson.D{
-			{Key: "$pull", Value: bson.D{
-				{Key: "plan", Value: bson.M{
-					"package.unique":  want.Unique,
-					"sellerusername":  want.SellerUsername,
-					"package.items.0": bson.M{"$exists": false},
-				}},
-			}},
-		},
-	).Err()
-}
-
-func insertProp(want *models.Want, col *mongo.Collection) error {
+func insertStreamerProp(want *models.Want, col *mongo.Collection) error {
 	return col.FindOneAndUpdate(
 		context.TODO(),
 		bson.M{
@@ -223,4 +238,201 @@ func insertProp(want *models.Want, col *mongo.Collection) error {
 			}},
 		}),
 	).Err()
+}
+
+func getBackPropClient(want *models.Want, col *mongo.Collection) error {
+	result, err := col.UpdateOne(
+		context.TODO(),
+		bson.M{
+			"username": want.BuyerUsername,
+		},
+		bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "plan.$[elem].package.items.$[elem2].status", Value: want.Status},
+			}},
+		},
+		options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.D{
+					{Key: "elem.package.unique", Value: want.Unique},
+					{Key: "elem.sellerusername", Value: want.SellerUsername},
+				},
+				bson.D{
+					{Key: "elem2.prop", Value: want.Prop},
+					{Key: "elem2.status", Value: "requested"},
+				},
+			},
+		}),
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("can't delete")
+	}
+	return nil
+}
+
+func getBackPropStreamer(want *models.Want, col *mongo.Collection) error {
+	result, err := col.UpdateOne(
+		context.TODO(),
+		bson.M{
+			"username": want.SellerUsername,
+		},
+		bson.M{"$pull": bson.M{"plan.$[elem].package.items": bson.M{
+			"status":        "requested",
+			"prop":          want.Prop,
+			"buyerUsername": want.BuyerUsername,
+		}}},
+		options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.D{
+					{Key: "elem.package.unique", Value: want.Unique},
+				},
+			},
+		}),
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("can't delete")
+	}
+	return nil
+}
+
+func deletePropClient(want *models.Want, col *mongo.Collection) error {
+	result, err := col.UpdateOne(
+		context.TODO(),
+		bson.M{
+			"username": want.BuyerUsername,
+		},
+		bson.M{"$pull": bson.M{"plan.$[elem].package.items": bson.M{
+			"status": "completed",
+			"prop":   want.Prop,
+		}}},
+		options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.D{
+					{Key: "elem.package.unique", Value: want.Unique},
+					{Key: "elem.sellerusername", Value: want.SellerUsername},
+				},
+			},
+		}),
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("can't delete")
+	}
+	return nil
+}
+
+func deletePropStreamer(want *models.Want, col *mongo.Collection) error {
+	result, err := col.UpdateOne(
+		context.TODO(),
+		bson.M{
+			"username": want.SellerUsername,
+		},
+		bson.M{"$pull": bson.M{"plan.$[elem].package.items": bson.M{
+			"status":        "completed",
+			"prop":          want.Prop,
+			"buyerUsername": want.BuyerUsername,
+		}}},
+		options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.D{
+					{Key: "elem.package.unique", Value: want.Unique},
+				},
+			},
+		}),
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("can't delete")
+	}
+	return nil
+}
+
+////Streamer
+
+func ControllerWantStreamer(want *models.Want, col1, col2 *mongo.Collection) error {
+	if want.Status == "complete" {
+		want.Status = "completed"
+		if err := updatePropForStreamer(want, col2); err != nil { //available to requested
+			return errors.New("error from updatePropForStreamer and err " + err.Error())
+		}
+		if err := updatePropClient2(want, col2); err != nil { //client hangi probu aldıysa
+			return errors.New("error from updatePropClient2 and err " + err.Error())
+		}
+	}
+	return nil
+}
+
+func updatePropForStreamer(want *models.Want, col *mongo.Collection) error {
+	result, err := col.UpdateOne(
+		context.TODO(),
+		bson.M{
+			"username": want.SellerUsername,
+		},
+		bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "plan.$[elem].package.items.$[elem2].status", Value: want.Status},
+			}},
+		},
+		options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.D{
+					{Key: "elem.package.unique", Value: want.Unique},
+				},
+				bson.D{
+					{Key: "elem2.prop", Value: want.Prop},
+					{Key: "elem2.buyerUsername", Value: want.BuyerUsername},
+					{Key: "elem2.status", Value: "requested"},
+				},
+			},
+		}),
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("this prop not requested")
+	}
+	return nil
+}
+func updatePropClient2(want *models.Want, col *mongo.Collection) error {
+	result, err := col.UpdateOne(
+		context.TODO(),
+		bson.M{
+			"username": want.BuyerUsername,
+		},
+		bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "plan.$[elem].package.items.$[elem2].status", Value: want.Status},
+			}},
+		},
+		options.Update().SetArrayFilters(options.ArrayFilters{
+			Filters: []interface{}{
+				bson.D{
+					{Key: "elem.package.unique", Value: want.Unique},
+					{Key: "elem.sellerusername", Value: want.SellerUsername},
+				},
+				bson.D{
+					{Key: "elem2.prop", Value: want.Prop},
+					{Key: "elem2.status", Value: "requested"},
+				},
+			},
+		}),
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("this prop requested")
+	}
+	return nil
 }

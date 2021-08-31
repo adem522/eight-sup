@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/adem522/eight-sup/database"
 	"github.com/adem522/eight-sup/models"
@@ -13,10 +14,9 @@ import (
 func (col *Collection) CreateEvent(c echo.Context) error {
 	u := models.Event{}
 	if err := c.Bind(&u); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	err := database.CreateEvent(&u, col.C1, col.C2)
-	if err != nil {
+	if err := database.CreateEvent(&u, col.C1, col.C2); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusCreated, []string{
@@ -49,8 +49,7 @@ func (col *Collection) PushPlan(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
-	err := database.PushPlan(&u, col.C1)
-	if err != nil {
+	if err := database.PushPlan(&u, col.C1); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	return c.JSON(http.StatusOK, "Plan added")
@@ -64,14 +63,14 @@ func (col *Collection) Register(c echo.Context) error {
 		return err
 	}
 	// Save to database
-	err := database.RegisterUser(&u, col.C1)
-	if err != nil {
+	if err := database.RegisterUser(&u, col.C1); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Register not completed because ": err.Error(),
 		})
 	}
-	return c.JSON(http.StatusOK, map[string]string{
-		"Register Completed for ": u.Username,
+	return c.JSON(http.StatusOK, []string{
+		"Register Completed for ",
+		u.Username,
 	})
 }
 
@@ -94,17 +93,66 @@ func (col *Collection) Login(c echo.Context) error {
 	})
 }
 
-func (col *Collection) CreateWant(c echo.Context) error {
+func (col *Collection) CreateExampleUsers(c echo.Context) error {
+	err := database.DropIfExist(col.C1)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{
+			"Register not completed because ": err.Error(),
+		})
+	}
+	u := models.UserStruct{}
+	for i := 1; i < 5; i++ {
+		if i%2 == 1 {
+			u = models.UserStruct{
+				Username: "user" + strconv.Itoa(i),
+				Password: "1",
+				Type:     "streamer",
+			}
+			u.Plan = []models.PlanStruct{}
+		} else {
+			u = models.UserStruct{
+				Username: "user" + strconv.Itoa(i),
+				Password: "1",
+				Type:     "client",
+			}
+			u.Plan = []models.PlanStruct{}
+		}
+		// Save to database
+		if err := database.RegisterUser(&u, col.C1); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{
+				"Register not completed because ": err.Error(),
+			})
+		}
+	}
+	return c.JSON(http.StatusOK, []string{
+		"Register Completed for all example users",
+	})
+}
+
+func (col *Collection) WantClient(c echo.Context) error {
 	u := models.Want{}
 	if err := c.Bind(&u); err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, errors.New("error from CreateWant/bind and error = "+err.Error()).Error())
 	}
-	data, err := database.CreateWant(&u, col.C1, col.C2)
+	err := database.ControllerWantClient(&u, col.C1, col.C2)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, errors.New("error from CreateWant and error = "+err.Error()))
+		return c.JSON(http.StatusBadRequest, errors.New("error from CreateWant/database and error = "+err.Error()).Error())
 	}
-	return c.JSON(http.StatusCreated, []interface{}{
+	return c.JSON(http.StatusCreated, []string{
 		"Want created Succesfull",
-		data,
+	})
+}
+
+func (col *Collection) WantStreamer(c echo.Context) error {
+	u := models.Want{}
+	if err := c.Bind(&u); err != nil {
+		return c.JSON(http.StatusBadRequest, errors.New("error from CompleteWantForStreamer/bind and error = "+err.Error()).Error())
+	}
+	err := database.ControllerWantStreamer(&u, col.C1, col.C2)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, errors.New("error from CompleteWantForStreamer/database and error = "+err.Error()).Error())
+	}
+	return c.JSON(http.StatusCreated, []string{
+		"Want created Succesfull",
 	})
 }

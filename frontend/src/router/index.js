@@ -8,7 +8,8 @@ import Register from "../views/Register.vue";
 import Package from "../views/Package.vue";
 import Plan from "../views/Plan.vue";
 import History from "../views/History.vue";
-import WantProp from "../views/WantProp.vue";
+import WantPropClient from "../views/WantPropClient.vue";
+import WantPropStreamer from "../views/WantPropStreamer.vue";
 
 // import store from '../store'
 
@@ -21,9 +22,15 @@ const routes = [
     component: Home,
   },
   {
-    path: "/wantProp",
-    name: "WantProp",
-    component: WantProp,
+    path: "/wantPropClient",
+    name: "WantPropClient",
+    component: WantPropClient,
+    auth: true,
+  },
+  {
+    path: "/wantPropStreamer",
+    name: "WantPropStreamer",
+    component: WantPropStreamer,
     auth: true,
   },
   {

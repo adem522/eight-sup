@@ -55,6 +55,7 @@
     <v-btn @click="$router.push({ name: 'Login' })" style="width: 100%"
       >LOGIN</v-btn
     >
+    <v-btn @click="createExampleUsers" style="width: 100%">Create Example Users</v-btn>
   </div>
 </template>
 
@@ -92,6 +93,18 @@ export default {
           name: this.name,
           twitchUsername: this.twitchUsername,
           type: this.type,
+          output: "json",
+        })
+        .then(() => {
+          this.$router.push("/login");
+        })
+        .catch((error) => {
+          window.alert(`The API returned an error: ${error}`);
+        });
+    },
+    createExampleUsers() {
+      axios
+        .get(this.host + "/user/createExampleUsers", {
           output: "json",
         })
         .then(() => {

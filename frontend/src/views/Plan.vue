@@ -63,8 +63,7 @@ export default {
       "username",
       "host",
       "type",
-      "storedInfo",
-      "storedPlan"
+      "storedInfo"
     ]),
   },
   data() {
@@ -77,6 +76,7 @@ export default {
       selectedInfo: null,
       goldStock: 0,
       success: false,
+      storedPlan:[],
       rules: {
         required: (value) => !!value || "Required.",
         min: (v) => v.length >= 1 || "Min 1 characters", //issues#4
@@ -115,20 +115,17 @@ export default {
     },
     getStocks() {
       axios
-        .put(this.host + "/list/userStock", {
+        .put(this.host + "/list/userPlan", {
           username: this.username,
-          //type:this.streamer
         })
         .then((response) => {
-            localStorage.setItem("storedPlan",response.data[0].plan);
-            this.$store.commit("setStoredPlan", response.data[0].plan);
+          this.storedPlan=response.data[0].plan;
         });
     },
     getInfo() {
       if (this.storedInfo.length == 0) {
         axios.get(this.host + "/list/planInfo").then((response) => {
           this.info = response.data.data;
-          localStorage.setItem("storedInfo", response.data.data);
           this.$store.commit("setStoredInfo", response.data.data);
         });
       } else {

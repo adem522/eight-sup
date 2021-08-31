@@ -32,8 +32,6 @@ const store = new Vuex.Store({
       localStorage.removeItem("token");
       localStorage.removeItem("username");
       localStorage.removeItem("type");
-      localStorage.removeItem("storedInfo");
-      localStorage.removeItem("storedPlan");
       state.storedInfo = [];
       state.storedPlan = [];
       state.username = "";

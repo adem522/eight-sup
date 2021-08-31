@@ -12,5 +12,5 @@ type Event struct {
 	BuyerUsername  string             `bson:"buyerUsername,omitempty"`
 	SellerUsername string             `bson:"sellerUsername,omitempty"`
 	Unique         string             `bson:"unique,omitempty"`
-	Items          []string           `bson:"items,omitempty"`
+	Items          []Items            `bson:"items,omitempty"`
 }

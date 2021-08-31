@@ -60,6 +60,7 @@ export default {
       sellerUsername: "",
       unique: "",
       sellers: [],
+      selectedItems:[],
       selectedInfo: null,
       selectedSeller: null,
       success:false
@@ -67,12 +68,21 @@ export default {
   },
   methods: {
     buyPackage() {
+      //console.log("selectedInfo",this.selectedInfo.items,"\n")
+      //console.log("items",items)
+      this.selectedItems=[]
+      for (let key in this.selectedInfo.items){
+        //console.log("key",key,"\n")
+        //console.log("data",this.selectedInfo.items[key],"\n")
+        this.selectedItems.push({prop:this.selectedInfo.items[key],status:"available",buyerUsername:this.username})
+      }
+      ///console.log("selectedItems",this.selectedItems,"\n")
       axios
         .post(this.host + "/create/event", {
           buyerUsername: this.username,
           sellerUsername: this.selectedSeller,
           unique: this.selectedInfo.unique,
-          items:this.selectedInfo.items,
+          items:this.selectedItems,
           output: "json",
         })
         .then(()=>{
@@ -99,7 +109,7 @@ export default {
         axios
           .get(this.host + "/list/planInfo")
           .then((response) => {
-            localStorage.setItem("storedInfo", response.data.data);
+
             this.$store.commit("setStoredInfo", response.data.data);
         });
       }

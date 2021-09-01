@@ -177,7 +177,6 @@ export default {
       )
         .then((response) => {
           this.storedPlan=response.data[0].plan;
-          console.log(this.storedPlan)
         }
       );
     },

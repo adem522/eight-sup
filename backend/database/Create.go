@@ -162,6 +162,9 @@ func ControllerWantClient(want *models.Want, col1, col2 *mongo.Collection) error
 		if err := updatePropClient(want, col2); err != nil { //available to requested
 			return errors.New("error from updatePropClient and err " + err.Error())
 		}
+		if err := insertPropClient(want, col1); err != nil { //available to requested
+			return errors.New("error from insertPropClient and err " + err.Error())
+		}
 		if err := insertStreamerProp(want, col2); err != nil { //client hangi probu aldıysa
 			return errors.New("error from insertStreamerProp and err " + err.Error())
 		}
@@ -169,6 +172,9 @@ func ControllerWantClient(want *models.Want, col1, col2 *mongo.Collection) error
 		want.Status = "available"
 		if err := getBackPropClient(want, col2); err != nil { //
 			return errors.New("error from getBackPropClient and err " + err.Error())
+		}
+		if err := insertPropClient(want, col1); err != nil { //available to requested
+			return errors.New("error from insertPropClient and err " + err.Error())
 		}
 		if err := getBackPropStreamer(want, col2); err != nil { //
 			return errors.New("error from getBackPropStreamer and err " + err.Error())
@@ -180,6 +186,14 @@ func ControllerWantClient(want *models.Want, col1, col2 *mongo.Collection) error
 		if err := deletePropStreamer(want, col2); err != nil { //
 			return errors.New("error from deletePropStreamer and err " + err.Error())
 		}
+	}
+	return nil
+}
+
+func insertPropClient(want *models.Want, col *mongo.Collection) error {
+	_, err := col.InsertOne(context.TODO(), want)
+	if err != nil {
+		return errors.New("error from handlers/register " + err.Error())
 	}
 	return nil
 }
@@ -358,7 +372,6 @@ func deletePropStreamer(want *models.Want, col *mongo.Collection) error {
 }
 
 ////Streamer
-
 func ControllerWantStreamer(want *models.Want, col1, col2 *mongo.Collection) error {
 	if want.Status == "complete" {
 		want.Status = "completed"

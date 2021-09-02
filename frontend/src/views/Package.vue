@@ -26,7 +26,7 @@
         <v-combobox
           v-model="selectedInfo"
           :items="storedInfo"
-          label="Info Names"
+          label="Package Names"
           item-text="name"
           item-value="unique"
           clearable

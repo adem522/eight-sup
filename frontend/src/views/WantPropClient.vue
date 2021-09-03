@@ -47,6 +47,9 @@
               <v-list-item v-if="item2.status=='completed'" >
                   <v-list-item-content >
                       <v-list-item-title>{{item2.prop}}</v-list-item-title>
+                      <v-list-item-action> <!--fix this-->
+                        <v-btn @click="wantProp(item.package.unique,item2.prop,'notCompleted')">Not Completed</v-btn>
+                      </v-list-item-action>
                       <v-list-item-action> 
                         <v-btn @click="wantProp(item.package.unique,item2.prop,'delete')">Delete</v-btn>
                       </v-list-item-action>

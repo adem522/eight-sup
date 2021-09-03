@@ -53,27 +53,27 @@ import { mapState } from "vuex";
       items: [
         {
           //bronze
-          img:'https://www.dupageseniorcouncil.org/wp-content/uploads/2018/02/Bronze-Icon-1.jpg',
+          img:require(`../assets/bronze.png`),
         },
         {
           //silver
-          img:'http://www.tpsnewengland.com/wp-content/uploads/2017/05/Silver-Icon.png',
+          img:require(`../assets/silver.png`),
         },
         {
           //gold
-          img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrhTfvz6h6Ok75qHkPdTQIwmFZLmiFvu_-MA&usqp=CAU',
+          img:require(`../assets/gold.png`),
         },
         {
           //emerald
-          img:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6zeMLiTquLZe3z0YzqoH1rHhrv9m0t5mbDw&usqp=CAU'
+          img:require(`../assets/emerald.png`),        
         },
         {
           //vibranium
-          img:'https://m.media-amazon.com/images/I/71ZfjP-Ui-L._AC_UL1500_.jpg',
+          img:require(`../assets/vibranium.png`),        
         },
         {
           //diamond
-          img:'https://thumbs.dreamstime.com/b/geometric-diamond-icon-low-poly-55394702.jpg',
+          img:require(`../assets/diamond.png`),
         },
       ],
     }),

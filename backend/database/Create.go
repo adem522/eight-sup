@@ -11,27 +11,48 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func CreateEvent(data *models.Event, event *mongo.Collection, user *mongo.Collection) error {
-	data.Date = time.Now().Add(3 * time.Hour)
-	if err := checkClient(user, data); err != nil {
-		return errors.New("error from check client - " + err.Error())
+func CreateEvent(data *models.Event, event, user *mongo.Collection) error {
+	chan1 := make(chan models.ChanReceiver)
+	chan2 := make(chan models.ChanReceiver)
+	go checkClient(user, data, chan1)
+	go checkStreamer(user, data, chan2)
+	b1, b2 := false, false
+	for {
+		select {
+		case receiver := <-chan1:
+			{
+				if receiver.Error != nil {
+					return errors.New("error from create event - " + receiver.Error.Error())
+				}
+				if receiver.Status {
+					b1 = true
+					break
+				}
+			}
+		case receiver := <-chan2:
+			{
+				if receiver.Error != nil {
+					return errors.New("error from create event - " + receiver.Error.Error())
+				}
+				if receiver.Status {
+					b2 = true
+					break
+				}
+			}
+		}
+		if b1 && b2 {
+			data.Date = time.Now().Add(3 * time.Hour)
+			go pushClient(user, data)
+			go pushStreamer(user, data)
+			_, err := event.InsertOne(
+				context.TODO(), data,
+			)
+			if err != nil {
+				return errors.New("error from create event - " + err.Error())
+			}
+			return nil
+		}
 	}
-	if err := checkStreamer(user, data); err != nil {
-		return errors.New("error from check streamer - " + err.Error())
-	}
-	if err := pushClient(user, data); err != nil {
-		return errors.New("error from push client - " + err.Error())
-	}
-	if err := pushStreamer(user, data); err != nil {
-		return errors.New("error from push streamer - " + err.Error())
-	}
-	_, err := event.InsertOne(
-		context.TODO(), data,
-	)
-	if err != nil {
-		return errors.New("error from create event - " + err.Error())
-	}
-	return nil
 }
 
 func CreatePlanInfo(data *models.PlanInfoStruct, planInfo *mongo.Collection) (interface{}, error) {
@@ -77,7 +98,10 @@ func PushPlan(u *models.UserStructAddPlan, collection *mongo.Collection) error {
 
 func RegisterUser(data1 *models.UserStruct, collection *mongo.Collection) error {
 	var result bson.M
-	err := collection.FindOne(context.TODO(), bson.M{"username": data1.Username}).Decode(&result)
+	err := collection.FindOne(
+		context.TODO(),
+		bson.M{"username": data1.Username},
+	).Decode(&result)
 	if result != nil {
 		return errors.New("already registered user " + err.Error())
 	}
@@ -382,10 +406,25 @@ func ControllerWantStreamer(want *models.Want, col1, col2 *mongo.Collection) err
 			return errors.New("error from updatePropClient2 and err " + err.Error())
 		}
 	}
+	if want.Status == "getBack" {
+		want.Status = "requested"
+		if err := updatePropForStreamer(want, col2); err != nil { //available to requested
+			return errors.New("error from updatePropForStreamer and err " + err.Error())
+		}
+		if err := updatePropClient2(want, col2); err != nil { //client hangi probu aldıysa
+			return errors.New("error from updatePropClient2 and err " + err.Error())
+		}
+	}
 	return nil
 }
 
 func updatePropForStreamer(want *models.Want, col *mongo.Collection) error {
+	filter := ""
+	if want.Status == "completed" {
+		filter = "requested"
+	} else if want.Status == "requested" {
+		filter = "completed"
+	}
 	result, err := col.UpdateOne(
 		context.TODO(),
 		bson.M{
@@ -404,7 +443,7 @@ func updatePropForStreamer(want *models.Want, col *mongo.Collection) error {
 				bson.D{
 					{Key: "elem2.prop", Value: want.Prop},
 					{Key: "elem2.buyerUsername", Value: want.BuyerUsername},
-					{Key: "elem2.status", Value: "requested"},
+					{Key: "elem2.status", Value: filter},
 				},
 			},
 		}),
@@ -418,6 +457,12 @@ func updatePropForStreamer(want *models.Want, col *mongo.Collection) error {
 	return nil
 }
 func updatePropClient2(want *models.Want, col *mongo.Collection) error {
+	filter := ""
+	if want.Status == "completed" {
+		filter = "requested"
+	} else if want.Status == "requested" {
+		filter = "completed"
+	}
 	result, err := col.UpdateOne(
 		context.TODO(),
 		bson.M{
@@ -436,7 +481,7 @@ func updatePropClient2(want *models.Want, col *mongo.Collection) error {
 				},
 				bson.D{
 					{Key: "elem2.prop", Value: want.Prop},
-					{Key: "elem2.status", Value: "requested"},
+					{Key: "elem2.status", Value: filter},
 				},
 			},
 		}),

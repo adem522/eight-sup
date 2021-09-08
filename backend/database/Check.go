@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/adem522/eight-sup/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func checkClient(collectionUser *mongo.Collection, event *models.Event) error {
+func checkClient(collectionUser *mongo.Collection, event *models.Event, chan1 chan models.ChanReceiver) {
 	var filter2 models.PlanStruct
 	var filter models.UserStruct
 	opt := options.FindOne().SetProjection(bson.M{"plan": 1})
@@ -24,14 +23,21 @@ func checkClient(collectionUser *mongo.Collection, event *models.Event) error {
 	if filter.Plan != nil {
 		for _, filter2 = range filter.Plan {
 			if filter2.Package.Unique == event.Unique && filter2.SellerUsername == event.SellerUsername {
-				return errors.New("error from updating buyer stock and error code - already have")
+				chan1 <- models.ChanReceiver{
+					Status: false,
+					Error:  errors.New("error from checking buyer stock and error code - already have"),
+				}
+				return
 			}
 		}
 	}
-	return nil
+	chan1 <- models.ChanReceiver{
+		Status: true,
+		Error:  nil,
+	}
 }
 
-func checkStreamer(collectionUser *mongo.Collection, event *models.Event) error {
+func checkStreamer(collectionUser *mongo.Collection, event *models.Event, chan1 chan models.ChanReceiver) {
 	var filter2 models.PlanStruct
 	var filter models.UserStruct
 	collectionUser.FindOne(
@@ -45,11 +51,18 @@ func checkStreamer(collectionUser *mongo.Collection, event *models.Event) error 
 	if filter.Plan != nil {
 		for _, filter2 = range filter.Plan {
 			if filter2.Package.Unique == event.Unique && filter2.Package.Stock > 0 {
-				return nil
+				chan1 <- models.ChanReceiver{
+					Status: true,
+					Error:  nil,
+				}
+				return
 			}
 		}
 	}
-	return errors.New("error from updating seller stock and error code -seller don't have stock")
+	chan1 <- models.ChanReceiver{
+		Status: false,
+		Error:  errors.New("error from checking seller stock and error code -seller don't have stock"),
+	}
 }
 
 func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
@@ -67,6 +80,7 @@ func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
 	)
 	if err != nil {
 		return errors.New("error from updating seller stock and error code - " + err.Error())
+
 	}
 	return nil
 }
@@ -74,7 +88,7 @@ func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
 func pushClient(collection *mongo.Collection, event *models.Event) error {
 	plan := models.PlanStruct{
 		Package: models.PackageStruct{
-			Date:   time.Now().Add(time.Hour * 3),
+			Date:   event.Date,
 			Unique: event.Unique,
 			Stock:  1,
 			Items:  event.Items,
@@ -94,18 +108,21 @@ func pushClient(collection *mongo.Collection, event *models.Event) error {
 	)
 	if err != nil {
 		return errors.New("error from updating buyer stock and error code - " + err.Error())
+
 	}
 	return nil
 }
 
-func LoginCheck(data1, data2 string, collection *mongo.Collection) string {
+func LoginCheck(data1, data2 string, col *mongo.Collection) string {
 	var result bson.M
-	opt := options.FindOne().SetProjection(bson.M{"_id": 0, "plan": 0})
-	collection.FindOne(context.TODO(), bson.M{
+	opt := options.FindOne().SetProjection(bson.M{
+		"_id":  0,
+		"plan": 0,
+	})
+	col.FindOne(context.TODO(), bson.M{
 		"username": data1,
 		"password": data2,
-	},
-		opt).Decode(&result)
+	}, opt).Decode(&result)
 	if result == nil {
 		return ""
 	}

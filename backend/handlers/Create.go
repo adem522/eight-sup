@@ -80,7 +80,11 @@ func (col *Collection) Login(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return err
 	}
-	check := database.LoginCheck(user.Username, user.Password, col.C1)
+	check := database.LoginCheck(
+		user.Username,
+		user.Password,
+		col.C1,
+	)
 	// Throws unauthorized error
 	if check == "" {
 		return echo.ErrUnauthorized

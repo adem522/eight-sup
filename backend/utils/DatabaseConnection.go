@@ -5,6 +5,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func Close(client *mongo.Client) {
@@ -18,11 +19,16 @@ func Close(client *mongo.Client) {
 		}
 	}()
 }
-
 func Connect() *mongo.Client {
 	// mongo.Connect return mongo.Client method
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb://127.0.0.1:27017/"))
+	client, err := mongo.Connect(
+		context.TODO(),
+		options.Client().ApplyURI("mongodb://127.0.0.1:27017/"),
+	)
 	if err != nil {
+		panic(err)
+	}
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		panic(err)
 	}
 	return client
@@ -30,7 +36,6 @@ func Connect() *mongo.Client {
 
 /*
 func ping(client *mongo.Client, ctx context.Context) error {
-
 	// mongo.Client has Ping to ping mongoDB, deadline of
 	// the Ping method will be determined by cxt
 	// Ping method return error if any occored, then

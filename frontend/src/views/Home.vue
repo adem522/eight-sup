@@ -3,10 +3,9 @@
     <v-card
         class="mx-auto"
     >
-    <div class="d-flex flex-no-wrap justify-space-between">
-      <h2>Package Names</h2>
+    <div class="text-center">
+      <h2 class="purple--text">Packages</h2>
     </div>
-
       <v-container>
         <v-row dense>
           <v-col
@@ -77,8 +76,8 @@ import { mapState } from "vuex";
         },
       ],
     }),
-    methods:{
-      getInfo() {
+    created() {
+      if(this.storedInfo.length==0){
         axios
         .get(this.host + "/list/planInfo")
         .then((response) => {
@@ -88,11 +87,6 @@ import { mapState } from "vuex";
             this.storedInfo[prop].img=this.items[prop].img
           }
         });
-      },
-    },
-    created() {
-      if(this.storedInfo.length==0){
-        this.getInfo();
       }
     },
   }

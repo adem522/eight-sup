@@ -148,11 +148,14 @@ export default {
         else if (statusCame=="getBack"){
           statusCame="available"
         }
+        console.log(this.storedPlan);
         for(let data in this.storedPlan){
           if(this.selectedUnique.unique==this.storedPlan[data].package.unique){
-            for(let data2 in this.storedPlan[data].package.items){
-              if(propCame==this.storedPlan[data].package.items[data2].prop){
-                this.storedPlan[data].package.items[data2].status=statusCame
+            if(this.selectedSeller.sellerusername==this.storedPlan[data].sellerusername){
+              for(let data2 in this.storedPlan[data].package.items){
+                if(propCame==this.storedPlan[data].package.items[data2].prop){
+                  this.storedPlan[data].package.items[data2].status=statusCame
+                }
               }
             }
           }

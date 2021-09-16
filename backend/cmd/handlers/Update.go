@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/adem522/eight-sup/database"
 	"github.com/adem522/eight-sup/models"
+	"github.com/adem522/eight-sup/pkg/db"
 	"github.com/labstack/echo"
 )
 
@@ -14,7 +14,7 @@ func (col *Collection) UpdatePlan(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
-	err := database.UpdatePlan(&u, col.C1)
+	err := db.UpdatePlan(&u, col.C1)
 	if err != nil {
 		log.Println(err)
 		return c.JSON(http.StatusBadRequest, err)

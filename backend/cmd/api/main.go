@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/adem522/eight-sup/handlers"
-	"github.com/adem522/eight-sup/utils"
+	"github.com/adem522/eight-sup/cmd/handlers"
+	"github.com/adem522/eight-sup/pkg/utils"
 
 	"github.com/labstack/echo"
 )

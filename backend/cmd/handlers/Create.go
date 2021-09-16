@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/adem522/eight-sup/database"
 	"github.com/adem522/eight-sup/models"
-	"github.com/adem522/eight-sup/utils"
+	"github.com/adem522/eight-sup/pkg/db"
+	"github.com/adem522/eight-sup/pkg/utils"
 	"github.com/labstack/echo"
 )
 
@@ -16,7 +16,7 @@ func (col *Collection) CreateEvent(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	if err := database.CreateEvent(&u, col.C1, col.C2); err != nil {
+	if err := db.CreateEvent(&u, col.C1, col.C2); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusCreated, []string{
@@ -29,7 +29,7 @@ func (col *Collection) CreatePlanInfo(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
-	result, err := database.CreatePlanInfo(&u, col.C1)
+	result, err := db.CreatePlanInfo(&u, col.C1)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Event not created - "+err.Error())
 	}
@@ -37,7 +37,7 @@ func (col *Collection) CreatePlanInfo(c echo.Context) error {
 }
 
 func (col *Collection) CreateAllPlan(c echo.Context) error {
-	result, err := database.CreateAllPlan(col.C1)
+	result, err := db.CreateAllPlan(col.C1)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Plan Infos not created - "+err.Error())
 	}
@@ -49,7 +49,7 @@ func (col *Collection) PushPlan(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
-	if err := database.PushPlan(&u, col.C1); err != nil {
+	if err := db.PushPlan(&u, col.C1); err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 	return c.JSON(http.StatusOK, "Plan added")
@@ -62,8 +62,8 @@ func (col *Collection) Register(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return err
 	}
-	// Save to database
-	if err := database.RegisterUser(&u, col.C1); err != nil {
+	// Save to db
+	if err := db.RegisterUser(&u, col.C1); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Register not completed because ": err.Error(),
 		})
@@ -80,7 +80,7 @@ func (col *Collection) Login(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return err
 	}
-	check := database.LoginCheck(
+	check := db.LoginCheck(
 		user.Username,
 		user.Password,
 		col.C1,
@@ -98,7 +98,7 @@ func (col *Collection) Login(c echo.Context) error {
 }
 
 func (col *Collection) CreateExampleUsers(c echo.Context) error {
-	err := database.DropIfExist(col.C1)
+	err := db.DropIfExist(col.C1)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Register not completed because ": err.Error(),
@@ -121,8 +121,8 @@ func (col *Collection) CreateExampleUsers(c echo.Context) error {
 			}
 			u.Plan = []models.PlanStruct{}
 		}
-		// Save to database
-		if err := database.RegisterUser(&u, col.C1); err != nil {
+		// Save to db
+		if err := db.RegisterUser(&u, col.C1); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{
 				"Register not completed because ": err.Error(),
 			})
@@ -138,9 +138,9 @@ func (col *Collection) WantClient(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.New("error from CreateWant/bind and error = "+err.Error()).Error())
 	}
-	err := database.ControllerWantClient(&u, col.C1, col.C2)
+	err := db.ControllerWantClient(&u, col.C1, col.C2)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, errors.New("error from CreateWant/database and error = "+err.Error()).Error())
+		return c.JSON(http.StatusBadRequest, errors.New("error from CreateWant/db and error = "+err.Error()).Error())
 	}
 	return c.JSON(http.StatusCreated, []string{
 		"Want created Succesfull",
@@ -152,9 +152,9 @@ func (col *Collection) WantStreamer(c echo.Context) error {
 	if err := c.Bind(&u); err != nil {
 		return c.JSON(http.StatusBadRequest, errors.New("error from CompleteWantForStreamer/bind and error = "+err.Error()).Error())
 	}
-	err := database.ControllerWantStreamer(&u, col.C1, col.C2)
+	err := db.ControllerWantStreamer(&u, col.C1, col.C2)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, errors.New("error from CompleteWantForStreamer/database and error = "+err.Error()).Error())
+		return c.JSON(http.StatusBadRequest, errors.New("error from CompleteWantForStreamer/db and error = "+err.Error()).Error())
 	}
 	return c.JSON(http.StatusCreated, []string{
 		"Want created Succesfull",

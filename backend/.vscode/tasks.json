@@ -3,6 +3,12 @@
     "cwd": "${workspaceFolder}",
     "tasks": [
         {
+            "label": "nodemon",
+            "command": "nodemon --exec go run cmd/api/main.go --signal SIGTERM",
+            "group": "build",
+            "type": "shell",
+        },
+        {
             "label": "install",
             "command": "go",
             "args": ["install", "-v", "./..."],
@@ -13,12 +19,6 @@
             "label": "run",
             "command": "go",
             "args": ["run", "${file}"],
-            "group": "build",
-            "type": "shell",
-        },
-        {
-            "label": "nodemon",
-            "command": "nodemon --exec go run main.go --signal SIGTERM",
             "group": "build",
             "type": "shell",
         },

@@ -3,14 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/adem522/eight-sup/database"
 	"github.com/adem522/eight-sup/models"
+	"github.com/adem522/eight-sup/pkg/db"
 	"github.com/labstack/echo"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (col *Collection) ReturnAllPlanInfo(c echo.Context) error {
-	data, err := database.ReturnAll(col.C1, "", nil)
+	data, err := db.ReturnAll(col.C1, "", nil)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),
@@ -21,7 +21,7 @@ func (col *Collection) ReturnAllPlanInfo(c echo.Context) error {
 	})
 }
 func (col *Collection) ReturnAllUsername(c echo.Context) error {
-	data, err := database.ReturnAll(col.C1, "username", bson.M{"type": "streamer"})
+	data, err := db.ReturnAll(col.C1, "username", bson.M{"type": "streamer"})
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),
@@ -40,7 +40,7 @@ func (col *Collection) ReturnUserPlan(c echo.Context) error {
 			"Can't return user because of ": err.Error(),
 		})
 	}
-	data, err := database.ReturnAll(col.C1, "plan", bson.M{"username": temp.Username})
+	data, err := db.ReturnAll(col.C1, "plan", bson.M{"username": temp.Username})
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),
@@ -78,7 +78,7 @@ func (col *Collection) ReturnUserEvent(c echo.Context) error {
 			"buyerUsername":  temp.BuyerUsername,
 		}
 	}
-	data, err := database.ReturnAll(col.C1, "", filter)
+	data, err := db.ReturnAll(col.C1, "", filter)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),
@@ -88,7 +88,7 @@ func (col *Collection) ReturnUserEvent(c echo.Context) error {
 }
 
 func (col *Collection) ReturnPlanUnique(c echo.Context) error {
-	data, err := database.ReturnAll(col.C1, "unique", nil)
+	data, err := db.ReturnAll(col.C1, "unique", nil)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),
@@ -107,7 +107,7 @@ func (col *Collection) ReturnUserWants(c echo.Context) error {
 			"Can't return user because of ": err.Error(),
 		})
 	}
-	data, err := database.ReturnAll(
+	data, err := db.ReturnAll(
 		col.C1, "plan.package.items", //projection
 		bson.M{
 			"type":                             "streamer",
@@ -130,7 +130,7 @@ func (col *Collection) ReturnAllItemsForClient(c echo.Context) error {
 			"Can't return user because of ": err.Error(),
 		})
 	}
-	data, err := database.ReturnAllItemsForClient(col.C1, &temp)
+	data, err := db.ReturnAllItemsForClient(col.C1, &temp)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),
@@ -145,7 +145,7 @@ func (col *Collection) ReturnAllItemsForStreamer(c echo.Context) error {
 			"Can't return user because of ": err.Error(),
 		})
 	}
-	data, err := database.ReturnAllItemsForStreamer(col.C1, &temp)
+	data, err := db.ReturnAllItemsForStreamer(col.C1, &temp)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"Can't return user because of ": err.Error(),

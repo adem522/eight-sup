@@ -44,7 +44,7 @@
           >
           <div v-if="selectedUnique.unique==item.package.unique">
             <div v-for="item2 in item.package.items" :key="item2.prop">
-              <v-list-item three-line v-if="item2.status=='completed'">
+              <v-list-item three-line v-if="item2.status=='completed'&&selectedSeller==item2.buyerUsername">
                   <v-list-item-content>
                       <v-list-item-title>{{item2.prop}}</v-list-item-title>
                       <v-list-item-action> 
@@ -66,7 +66,7 @@
           >
           <div v-if="selectedUnique.unique==item.package.unique">
             <div v-for="item2 in item.package.items" :key="item2.prop">
-              <v-list-item three-line v-if="item2.status=='requested'">
+              <v-list-item three-line v-if="item2.status=='requested'&&selectedSeller==item2.buyerUsername">
                   <v-list-item-content>
                       <v-list-item-title>{{item2.prop}}</v-list-item-title>
                       <v-list-item-action> 
@@ -121,8 +121,10 @@ export default {
         for(let data in this.storedPlan){
           if(this.selectedUnique.unique==this.storedPlan[data].package.unique){
             for(let data2 in this.storedPlan[data].package.items){
-              if(propCame==this.storedPlan[data].package.items[data2].prop){
-                this.storedPlan[data].package.items[data2].status=statusCame
+              if(this.selectedSeller==this.storedPlan[data].package.items[data2].buyerUsername){
+                if(propCame==this.storedPlan[data].package.items[data2].prop){
+                  this.storedPlan[data].package.items[data2].status=statusCame
+                }
               }
             }
           }
@@ -158,6 +160,7 @@ export default {
         .then((response) => {
           this.storedPlan=response.data[0].plan;
           this.takeWantedUsers();
+          console.log(this.storedPlan);
         }
       );
     },

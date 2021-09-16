@@ -15,6 +15,11 @@ func main() {
 		C2: client.Database("eight-sup").Collection("user"),
 		N:  "event",
 	}
+	wantCol := handlers.Collection{
+		C1: client.Database("eight-sup").Collection("want"),
+		C2: client.Database("eight-sup").Collection("user"),
+		N:  "want",
+	}
 	planCol := handlers.Collection{
 		C1: client.Database("eight-sup").Collection("planInfo"),
 		N:  "planInfo",
@@ -22,11 +27,6 @@ func main() {
 	userCol := handlers.Collection{
 		C1: client.Database("eight-sup").Collection("user"),
 		N:  "user",
-	}
-	wantCol := handlers.Collection{
-		C1: client.Database("eight-sup").Collection("want"),
-		C2: client.Database("eight-sup").Collection("user"),
-		N:  "want",
 	}
 	e := echo.New()
 	e.Use(utils.CORSConfig(), utils.Logger()) //issues#6

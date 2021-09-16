@@ -43,6 +43,11 @@
           Buyed Package
         </v-alert>
       </v-col>
+      <v-col v-if="!!errorData" cols="12">
+        <v-alert type="error">
+          {{this.errorData}}
+        </v-alert>
+      </v-col>
     </v-row>
   </v-container>
 </template>
@@ -52,7 +57,7 @@ import { mapState } from "vuex";
 export default {
   name: "Package",
   computed: {
-    ...mapState(["username", "host","storedInfo","storedSilverStock","storedGoldStock"]),
+    ...mapState(["username", "host","storedInfo"]),
   },
   data() {
     return {
@@ -63,20 +68,20 @@ export default {
       selectedItems:[],
       selectedInfo: null,
       selectedSeller: null,
-      success:false
+      success:false,
+      errorData:""
     };
   },
   methods: {
     buyPackage() {
-      //console.log("selectedInfo",this.selectedInfo.items,"\n")
-      //console.log("items",items)
       this.selectedItems=[]
       for (let key in this.selectedInfo.items){
-        //console.log("key",key,"\n")
-        //console.log("data",this.selectedInfo.items[key],"\n")
-        this.selectedItems.push({prop:this.selectedInfo.items[key],status:"available",buyerUsername:this.username})
+        this.selectedItems.push({
+          prop:this.selectedInfo.items[key],
+          status:"available",
+          buyerUsername:this.username,
+          })
       }
-      ///console.log("selectedItems",this.selectedItems,"\n")
       axios
         .post(this.host + "/create/event", {
           buyerUsername: this.username,
@@ -88,14 +93,28 @@ export default {
         .then(()=>{
           for(let prop in this.storedPlan){
               if (this.selectedInfo.unique == this.storedPlan[prop].package.unique){
-              this.storedPlan[prop].package.stock = parseInt(this.take) + parseInt(this.already)
+              this.storedPlan[prop].package.stock = 
+                              parseInt(this.take) + 
+                              parseInt(this.already)
             }
           }
             this.success=true
             this.hide_alert()
         })
         .catch((error) => {
-          window.alert(`The API returned an error: ${error.response.data}`);
+          if (error.response.data=="error from check client - error from updating buyer stock and error code - already have"){
+            this.success=false
+            this.errorData="Already Have This Package"
+            this.hide_alert()
+          }
+          else if (error.response.data=="error from check streamer - error from updating seller stock and error code -seller don't have stock"){
+            this.success=false
+            this.errorData="Seller Don't Have Stock"
+            this.hide_alert()
+          }
+          else{
+            window.alert(`The API returned an error: ${error}`);
+          }
         });
     },
     getSellers() {
@@ -116,8 +135,9 @@ export default {
     },
     hide_alert() {
       window.setInterval(() => {
+        this.errorData=""
         this.success=false;
-      }, 1500)    
+      }, 2000)    
     }
   },
   created() {

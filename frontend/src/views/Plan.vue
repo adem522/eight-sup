@@ -95,7 +95,9 @@ export default {
         .then(()=>{
         for(let prop in this.storedPlan){
             if (this.selectedInfo.unique == this.storedPlan[prop].package.unique){
-            this.storedPlan[prop].package.stock = parseInt(this.take) + parseInt(this.already)
+            this.storedPlan[prop].package.stock = 
+                    parseInt(this.take) + 
+                    parseInt(this.already)
           }
         }
           this.success = true;

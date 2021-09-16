@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/adem522/eight-sup/models"
@@ -12,38 +13,57 @@ import (
 )
 
 func CreateEvent(data *models.Event, event, user *mongo.Collection) error {
-	chan1 := make(chan models.ChanReceiver)
-	chan2 := make(chan models.ChanReceiver)
+	chan1 := make(chan error)
+	chan2 := make(chan error)
+	b1, b2 := false, false
 	go checkClient(user, data, chan1)
 	go checkStreamer(user, data, chan2)
-	b1, b2 := false, false
 	for {
 		select {
 		case receiver := <-chan1:
 			{
-				if receiver.Error != nil {
-					return errors.New("error from create event - " + receiver.Error.Error())
-				}
-				if receiver.Status {
+				if receiver != nil {
+					return errors.New("error from create event - " + receiver.Error())
+				} else {
 					b1 = true
 					break
 				}
 			}
 		case receiver := <-chan2:
 			{
-				if receiver.Error != nil {
-					return errors.New("error from create event - " + receiver.Error.Error())
-				}
-				if receiver.Status {
+				if receiver != nil {
+					return errors.New("error from create event - " + receiver.Error())
+				} else {
 					b2 = true
 					break
 				}
 			}
 		}
 		if b1 && b2 {
+			var wg2 sync.WaitGroup
+			wg2.Add(2)
 			data.Date = time.Now().Add(3 * time.Hour)
-			go pushClient(user, data)
-			go pushStreamer(user, data)
+			go func() error {
+				err := pushClient(user, data)
+				if err != nil {
+					wg2.Done()
+					wg2.Done()
+					return err
+				}
+				wg2.Done()
+				return nil
+			}()
+			go func() error {
+				err := pushStreamer(user, data)
+				if err != nil {
+					wg2.Done()
+					wg2.Done()
+					return err
+				}
+				wg2.Done()
+				return nil
+			}()
+			wg2.Wait()
 			_, err := event.InsertOne(
 				context.TODO(), data,
 			)
@@ -181,48 +201,107 @@ func DropIfExist(collection *mongo.Collection) error {
 
 //Client
 func ControllerWantClient(want *models.Want, col1, col2 *mongo.Collection) error {
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func() error {
+		if err := createWant(want, col1); err != nil {
+			wg.Done()
+			wg.Done()
+			wg.Done()
+			return errors.New("error from createWant and err " + err.Error())
+		} else {
+			wg.Done()
+			return nil
+		}
+	}()
 	if want.Status == "want" {
 		want.Status = "requested"
-		if err := updatePropClient(want, col2); err != nil { //available to requested
-			return errors.New("error from updatePropClient and err " + err.Error())
-		}
-		if err := insertPropClient(want, col1); err != nil { //available to requested
-			return errors.New("error from insertPropClient and err " + err.Error())
-		}
-		if err := insertStreamerProp(want, col2); err != nil { //client hangi probu aldıysa
-			return errors.New("error from insertStreamerProp and err " + err.Error())
-		}
+		go func() error {
+			if err := updateClientProp(want, col2); err != nil {
+				wg.Done()
+				wg.Done()
+				wg.Done()
+				return errors.New("error from updatePropClient and err " + err.Error())
+			} else {
+				wg.Done()
+				return nil
+			}
+		}()
+		go func() error {
+			if err := insertStreamerProp(want, col2); err != nil {
+				wg.Done()
+				wg.Done()
+				wg.Done()
+				return errors.New("error from insertStreamerProp and err " + err.Error())
+			} else {
+				wg.Done()
+				return nil
+			}
+		}()
+		wg.Wait()
 	} else if want.Status == "getBack" {
 		want.Status = "available"
-		if err := getBackPropClient(want, col2); err != nil { //
-			return errors.New("error from getBackPropClient and err " + err.Error())
-		}
-		if err := insertPropClient(want, col1); err != nil { //available to requested
-			return errors.New("error from insertPropClient and err " + err.Error())
-		}
-		if err := getBackPropStreamer(want, col2); err != nil { //
-			return errors.New("error from getBackPropStreamer and err " + err.Error())
-		}
+		go func() error {
+			if err := getBackPropClient(want, col2); err != nil {
+				wg.Done()
+				wg.Done()
+				wg.Done()
+				return errors.New("error from getBackPropClient and err " + err.Error())
+			} else {
+				wg.Done()
+				return nil
+			}
+		}()
+		go func() error {
+			if err := getBackPropStreamer(want, col2); err != nil {
+				wg.Done()
+				wg.Done()
+				wg.Done()
+				return errors.New("error from getBackPropStreamer and err " + err.Error())
+			} else {
+				wg.Done()
+				return nil
+			}
+		}()
+		wg.Wait()
 	} else if want.Status == "delete" {
-		if err := deletePropClient(want, col2); err != nil { //
-			return errors.New("error from deletePropClient and err " + err.Error())
-		}
-		if err := deletePropStreamer(want, col2); err != nil { //
-			return errors.New("error from deletePropStreamer and err " + err.Error())
-		}
+		go func() error {
+			if err := deletePropClient(want, col2); err != nil {
+				wg.Done()
+				wg.Done()
+				wg.Done()
+				return errors.New("error from deletePropClient and err " + err.Error())
+			} else {
+				wg.Done()
+				return nil
+			}
+		}()
+		go func() error {
+			if err := deletePropStreamer(want, col2); err != nil {
+				wg.Done()
+				wg.Done()
+				wg.Done()
+				return errors.New("error from deletePropStreamer and err " + err.Error())
+			} else {
+				wg.Done()
+				return nil
+			}
+		}()
+		wg.Wait()
 	}
 	return nil
 }
 
-func insertPropClient(want *models.Want, col *mongo.Collection) error {
+func createWant(want *models.Want, col *mongo.Collection) error {
+	want.Date = time.Now().Add(time.Hour * 3)
 	_, err := col.InsertOne(context.TODO(), want)
 	if err != nil {
-		return errors.New("error from handlers/register " + err.Error())
+		return errors.New("error from database/insertPropClient " + err.Error())
 	}
 	return nil
 }
 
-func updatePropClient(want *models.Want, col *mongo.Collection) error {
+func updateClientProp(want *models.Want, col *mongo.Collection) error {
 	result, err := col.UpdateOne(
 		context.TODO(),
 		bson.M{
@@ -256,7 +335,7 @@ func updatePropClient(want *models.Want, col *mongo.Collection) error {
 }
 
 func insertStreamerProp(want *models.Want, col *mongo.Collection) error {
-	return col.FindOneAndUpdate(
+	result, err := col.UpdateOne(
 		context.TODO(),
 		bson.M{
 			"username": want.SellerUsername,
@@ -270,12 +349,19 @@ func insertStreamerProp(want *models.Want, col *mongo.Collection) error {
 				}},
 			}},
 		},
-		options.FindOneAndUpdate().SetArrayFilters(options.ArrayFilters{
+		options.Update().SetArrayFilters(options.ArrayFilters{
 			Filters: []interface{}{bson.D{
 				{Key: "elem.package.unique", Value: want.Unique},
 			}},
 		}),
-	).Err()
+	)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("this prop available")
+	}
+	return nil
 }
 
 func getBackPropClient(want *models.Want, col *mongo.Collection) error {
@@ -399,22 +485,45 @@ func deletePropStreamer(want *models.Want, col *mongo.Collection) error {
 func ControllerWantStreamer(want *models.Want, col1, col2 *mongo.Collection) error {
 	if want.Status == "complete" {
 		want.Status = "completed"
-		if err := updatePropForStreamer(want, col2); err != nil { //available to requested
-			return errors.New("error from updatePropForStreamer and err " + err.Error())
-		}
-		if err := updatePropClient2(want, col2); err != nil { //client hangi probu aldıysa
-			return errors.New("error from updatePropClient2 and err " + err.Error())
-		}
-	}
-	if want.Status == "getBack" {
+	} else if want.Status == "getBack" {
 		want.Status = "requested"
-		if err := updatePropForStreamer(want, col2); err != nil { //available to requested
-			return errors.New("error from updatePropForStreamer and err " + err.Error())
-		}
-		if err := updatePropClient2(want, col2); err != nil { //client hangi probu aldıysa
-			return errors.New("error from updatePropClient2 and err " + err.Error())
-		}
 	}
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func() error {
+		if err := createWant(want, col1); err != nil {
+			wg.Done()
+			wg.Done()
+			wg.Done()
+			return errors.New("error from createWant and err " + err.Error())
+		} else {
+			wg.Done()
+			return nil
+		}
+	}()
+	go func() error {
+		if err := updatePropForStreamer(want, col2); err != nil { //available to requested
+			wg.Done()
+			wg.Done()
+			wg.Done()
+			return errors.New("error from updatePropForStreamer and err " + err.Error())
+		} else {
+			wg.Done()
+			return nil
+		}
+	}()
+	go func() error {
+		if err := updatePropClient2(want, col2); err != nil { //client hangi probu aldıysa
+			wg.Done()
+			wg.Done()
+			wg.Done()
+			return errors.New("error from updatePropClient2 and err " + err.Error())
+		} else {
+			wg.Done()
+			return nil
+		}
+	}()
+	wg.Wait()
 	return nil
 }
 
@@ -442,8 +551,8 @@ func updatePropForStreamer(want *models.Want, col *mongo.Collection) error {
 				},
 				bson.D{
 					{Key: "elem2.prop", Value: want.Prop},
-					{Key: "elem2.buyerUsername", Value: want.BuyerUsername},
 					{Key: "elem2.status", Value: filter},
+					{Key: "elem2.buyerUsername", Value: want.BuyerUsername},
 				},
 			},
 		}),

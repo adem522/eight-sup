@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func checkClient(collectionUser *mongo.Collection, event *models.Event, chan1 chan models.ChanReceiver) {
+func checkClient(collectionUser *mongo.Collection, event *models.Event, chan1 chan error) {
 	var filter2 models.PlanStruct
 	var filter models.UserStruct
 	opt := options.FindOne().SetProjection(bson.M{"plan": 1})
@@ -23,21 +23,15 @@ func checkClient(collectionUser *mongo.Collection, event *models.Event, chan1 ch
 	if filter.Plan != nil {
 		for _, filter2 = range filter.Plan {
 			if filter2.Package.Unique == event.Unique && filter2.SellerUsername == event.SellerUsername {
-				chan1 <- models.ChanReceiver{
-					Status: false,
-					Error:  errors.New("error from checking buyer stock and error code - already have"),
-				}
+				chan1 <- errors.New("error from checking buyer stock and error code - already have")
 				return
 			}
 		}
 	}
-	chan1 <- models.ChanReceiver{
-		Status: true,
-		Error:  nil,
-	}
+	chan1 <- nil
 }
 
-func checkStreamer(collectionUser *mongo.Collection, event *models.Event, chan1 chan models.ChanReceiver) {
+func checkStreamer(collectionUser *mongo.Collection, event *models.Event, chan1 chan error) {
 	var filter2 models.PlanStruct
 	var filter models.UserStruct
 	collectionUser.FindOne(
@@ -51,18 +45,12 @@ func checkStreamer(collectionUser *mongo.Collection, event *models.Event, chan1 
 	if filter.Plan != nil {
 		for _, filter2 = range filter.Plan {
 			if filter2.Package.Unique == event.Unique && filter2.Package.Stock > 0 {
-				chan1 <- models.ChanReceiver{
-					Status: true,
-					Error:  nil,
-				}
+				chan1 <- nil
 				return
 			}
 		}
 	}
-	chan1 <- models.ChanReceiver{
-		Status: false,
-		Error:  errors.New("error from checking seller stock and error code -seller don't have stock"),
-	}
+	chan1 <- errors.New("error from checking seller stock and error code -seller don't have stock")
 }
 
 func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
@@ -80,7 +68,6 @@ func pushStreamer(collectionUser *mongo.Collection, event *models.Event) error {
 	)
 	if err != nil {
 		return errors.New("error from updating seller stock and error code - " + err.Error())
-
 	}
 	return nil
 }
@@ -108,7 +95,6 @@ func pushClient(collection *mongo.Collection, event *models.Event) error {
 	)
 	if err != nil {
 		return errors.New("error from updating buyer stock and error code - " + err.Error())
-
 	}
 	return nil
 }

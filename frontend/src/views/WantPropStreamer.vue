@@ -48,7 +48,7 @@
                   <v-list-item-content>
                       <v-list-item-title>{{item2.prop}}</v-list-item-title>
                       <v-list-item-action> 
-                        <v-btn @click="wantProp(item.package.unique,item2.prop,'')" >Get Back</v-btn>
+                        <v-btn @click="wantProp(item.package.unique,item2.prop,'getBack')" >Get Back</v-btn>
                       </v-list-item-action>
                   </v-list-item-content>
               </v-list-item>
@@ -114,6 +114,9 @@ export default {
       .then(()=>{
         if (statusCame=="complete"){
           statusCame="completed"
+        }
+        else if (statusCame=="getBack"){
+          statusCame="requested"
         }
         for(let data in this.storedPlan){
           if(this.selectedUnique.unique==this.storedPlan[data].package.unique){

@@ -9,7 +9,6 @@ const store = new Vuex.Store({
     type: "",
     token: null,
     storedInfo:[],
-    storedPlan:[],
     host: "http://localhost:8080",
   },
   mutations: { 
@@ -18,9 +17,6 @@ const store = new Vuex.Store({
     },
     setToken(state, val) {
       state.token = val;
-    },
-    setStoredPlan(state,val){
-      state.storedPlan=val;
     },
     setType(state, val) {
       state.type = val;
@@ -33,7 +29,6 @@ const store = new Vuex.Store({
       localStorage.removeItem("username");
       localStorage.removeItem("type");
       state.storedInfo = [];
-      state.storedPlan = [];
       state.username = "";
       state.type = "";
       state.token = null;

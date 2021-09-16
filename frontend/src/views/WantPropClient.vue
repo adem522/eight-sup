@@ -94,7 +94,6 @@
               <v-list-item v-if="item2.status=='available'" >
                   <v-list-item-content >
                       <v-list-item-title>{{item2.prop}}</v-list-item-title>
-                      <v-list-item-title>{{item.package.unique}}</v-list-item-title>
                       <v-list-item-action> 
                         <v-btn @click="wantProp(item.package.unique,item2.prop,'want')" >Want</v-btn>
                       </v-list-item-action>

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/adem522/eight-sup/models"
-	"github.com/adem522/eight-sup/utils"
+	"github.com/adem522/eight-sup/pkg/utils"
 )
 
 func BenchmarkCreateEvent(b *testing.B) {

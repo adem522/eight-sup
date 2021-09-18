@@ -41,22 +41,21 @@ func CreateEvent(data *models.Event, event, user *mongo.Collection) error {
 		}
 		if b1 && b2 {
 			var wg2 sync.WaitGroup
-			wg2.Add(2)
 			data.Date = time.Now().Add(3 * time.Hour)
+			wg2.Add(1)
 			go func() error {
 				err := pushClient(user, data)
 				if err != nil {
-					wg2.Done()
 					wg2.Done()
 					return err
 				}
 				wg2.Done()
 				return nil
 			}()
+			wg2.Add(1)
 			go func() error {
 				err := pushStreamer(user, data)
 				if err != nil {
-					wg2.Done()
 					wg2.Done()
 					return err
 				}

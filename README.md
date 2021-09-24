@@ -1,3 +1,24 @@
 # eight-sup
 
-[![Readme Card](https://github-readme-stats.vercel.app/api/pin/?username=fleimkeipa&repo=eight-sup)](https://github.com/fleimkeipa/eight-sup)
+## Project setup
+```
+yarn install
+```
+
+### Compiles and hot-reloads for development
+```
+yarn serve
+```
+
+### Compiles and minifies for production
+```
+yarn build
+```
+
+### Lints and fixes files
+```
+yarn lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).

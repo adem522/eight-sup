@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/adem522/eight-sup/cmd/handlers"
 	"github.com/adem522/eight-sup/pkg/utils"
 
@@ -56,6 +58,5 @@ func main() {
 	list.PUT("/userWants", userCol.ReturnUserWants)                     //buyer and seller username
 	list.PUT("/allItemsForClient", userCol.ReturnAllItemsForClient)     //buyer and seller username
 	list.PUT("/allItemsForStreamer", userCol.ReturnAllItemsForStreamer) //buyer and seller username
-
-	e.Logger.Fatal(e.Start(":8080")) //issues#6
+	e.Logger.Fatal(e.Start(":" + os.Getenv("PORT")))                    //issues#6
 }

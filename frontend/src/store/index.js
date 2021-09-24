@@ -9,7 +9,7 @@ const store = new Vuex.Store({
     type: "",
     token: null,
     storedInfo:[],
-    host: "https://eigt-sup.herokuapp.com",
+    host: "https://eigt-sup.herokuapp.com/",
   },
   mutations: { 
     setUsername(state, val) {

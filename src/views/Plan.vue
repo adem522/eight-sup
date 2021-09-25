@@ -62,19 +62,15 @@ export default {
     ...mapState([
       "username",
       "host",
-      "type",
       "storedInfo"
     ]),
   },
   data() {
     return {
-      buyerUsername: "",
       already: 0,
       take: 0,
-      unique: "",
       info: [null],
       selectedInfo: null,
-      goldStock: 0,
       success: false,
       storedPlan:[],
       rules: {

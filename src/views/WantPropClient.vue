@@ -148,7 +148,6 @@ export default {
         else if (statusCame=="getBack"){
           statusCame="available"
         }
-        console.log(this.storedPlan);
         for(let data in this.storedPlan){
           if(this.selectedUnique.unique==this.storedPlan[data].package.unique){
             if(this.selectedSeller.sellerusername==this.storedPlan[data].sellerusername){

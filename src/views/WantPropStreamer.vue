@@ -160,7 +160,6 @@ export default {
         .then((response) => {
           this.storedPlan=response.data[0].plan;
           this.takeWantedUsers();
-          console.log(this.storedPlan);
         }
       );
     },

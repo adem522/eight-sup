@@ -48,14 +48,12 @@ import { mapState } from "vuex";
 export default {
   name: "List",
   computed: {
-    ...mapState(["username", "host","type","storedPlan","storedInfo"]),
+    ...mapState(["username", "host","type"]),
   },
   data() {
     return {
-      already:"",
       buyerusername:[],
       storedEvent:[],
-      selectedInfo: null,
       selectedBuyer: null,
     };
   },

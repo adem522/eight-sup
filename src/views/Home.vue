@@ -48,46 +48,16 @@ import { mapState } from "vuex";
     computed:{
       ...mapState(["host","storedInfo"])
     },
-    data: () => ({
-      items: [
-        {
-          //bronze
-          img:require(`../assets/bronze.png`),
-        },
-        {
-          //silver
-          img:require(`../assets/silver.png`),
-        },
-        {
-          //gold
-          img:require(`../assets/gold.png`),
-        },
-        {
-          //emerald
-          img:require(`../assets/emerald.png`),        
-        },
-        {
-          //vibranium
-          img:require(`../assets/vibranium.png`),        
-        },
-        {
-          //diamond
-          img:require(`../assets/diamond.png`),
-        },
-      ],
-    }),
     created() {
-      if(this.storedInfo.length==0){
         axios
         .get(this.host + "/list/planInfo")
         .then((response) => {
           this.storedInfo=response.data.data
           this.$store.commit("setStoredInfo", response.data.data);
           for(let prop in this.storedInfo){
-            this.storedInfo[prop].img=this.items[prop].img
+            this.storedInfo[prop].img=require('../assets/'+this.storedInfo[prop].unique+'.png')
           }
         });
-      }
     },
   }
 </script>

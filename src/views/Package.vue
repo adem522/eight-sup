@@ -61,9 +61,6 @@ export default {
   },
   data() {
     return {
-      buyerUsername: "",
-      sellerUsername: "",
-      unique: "",
       sellers: [],
       selectedItems:[],
       selectedInfo: null,
@@ -128,7 +125,6 @@ export default {
         axios
           .get(this.host + "/list/planInfo")
           .then((response) => {
-
             this.$store.commit("setStoredInfo", response.data.data);
         });
       }

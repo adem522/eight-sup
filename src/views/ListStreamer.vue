@@ -48,13 +48,12 @@ import { mapState } from "vuex";
 export default {
   name: "List",
   computed: {
-    ...mapState(["username", "host","type","storedPlan","storedInfo"]),
+    ...mapState(["username", "host","storedInfo"]),
   },
   data() {
     return {
-      already:"",
       sellerusername:[],
-      selectedInfo: null,
+      storedPlan:[],
       selectedSeller: null,
     };
   },
@@ -82,7 +81,7 @@ export default {
       )
         .then((response) => {
             this.sellerUsername=response.data[0];
-            this.$store.commit("setStoredPlan", response.data[0].plan);
+            this.storedPlan=response.data[0].plan
         }
       );
     },

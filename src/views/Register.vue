@@ -55,7 +55,7 @@
     <v-btn @click="$router.push({ name: 'Login' })" style="width: 100%"
       >LOGIN</v-btn
     >
-    <v-btn @click="createExampleUsers" style="width: 100%">Create Example Users</v-btn>
+   <!-- <v-btn @click="createExampleUsers" style="width: 100%">Create Example Users</v-btn> -->
   </div>
 </template>
 
